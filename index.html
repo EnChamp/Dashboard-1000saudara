@@ -383,38 +383,40 @@
               </div>
 
               <div>
-                <label class="block text-[11px] font-medium text-slate-300 mb-0.5">Alamat Lengkap</label>
+                <label class="block text-[11px] font-medium text-slate-300 mb-0.5">Link Google Maps / Koordinat (Paling Akurat 🎯)</label>
+                <input type="text" id="newShopUrl" oninput="autoDetectCoordsFromUrl(this.value)" placeholder="Paste Link Maps / Lat, Long (-6.xxx, 106.xxx)" class="w-full bg-slate-950 border border-blue-500/50 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-400 font-mono">
+                <span class="text-[10px] text-slate-400 mt-0.5 block">Bisa paste link Google Maps (URL bar / share) atau angka koordinat.</span>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-medium text-slate-300 mb-0.5">Alamat Lengkap (Patokan / Alternatif Pencarian)</label>
                 <textarea id="newShopAddress" required rows="2" placeholder="Jl. Raya Sawangan No. 12, Depok" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"></textarea>
               </div>
 
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label class="block text-[11px] font-medium text-slate-300 mb-0.5">Provinsi / Wilayah</label>
-                  <select id="newShopProv" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none">
-                    <option value="DKI Jakarta">DKI Jakarta</option>
-                    <option value="Banten">Banten</option>
-                    <option value="Jawa Barat">Jawa Barat</option>
-                    <option value="Lainnya">Lainnya</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-[11px] font-medium text-slate-300 mb-0.5">Link Google Maps</label>
-                  <input type="url" id="newShopUrl" placeholder="https://maps.app.goo.gl/..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
-                </div>
+              <div>
+                <label class="block text-[11px] font-medium text-slate-300 mb-0.5">Provinsi / Wilayah</label>
+                <select id="newShopProv" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none">
+                  <option value="DKI Jakarta">DKI Jakarta</option>
+                  <option value="Banten">Banten</option>
+                  <option value="Jawa Barat">Jawa Barat</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
               </div>
 
-              <div class="pt-1">
-                <button type="button" onclick="toggleManualCoords()" class="text-[11px] text-blue-400 hover:underline">
-                  ⚙️ Masukkan koordinat manual (opsional)
-                </button>
-                <div id="manualCoordsSection" class="hidden grid grid-cols-2 gap-2 mt-1.5">
-                  <input type="number" step="any" id="newShopLat" placeholder="Latitude (-6.xxx)" class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-white">
-                  <input type="number" step="any" id="newShopLng" placeholder="Longitude (106.xxx)" class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-white">
+              <!-- Input Koordinat Terdeteksi / Manual -->
+              <div class="pt-1 bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+                <div class="flex items-center justify-between text-[11px] text-slate-300 mb-1">
+                  <span class="font-semibold text-blue-400">Koordinat Pin Toko</span>
+                  <span id="coordDetectionBadge" class="text-[10px] text-slate-500">Otomatis / Manual</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <input type="number" step="any" id="newShopLat" placeholder="Latitude (-6.xxx)" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white font-mono">
+                  <input type="number" step="any" id="newShopLng" placeholder="Longitude (106.xxx)" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white font-mono">
                 </div>
               </div>
 
               <button type="submit" id="btnSubmitStore" class="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition">
-                <span>🔍 Cari Alamat & Simpan Pin</span>
+                <span>📍 Simpan Toko ke Peta</span>
               </button>
               <div id="addStoreStatus" class="text-[11px] text-center pt-1 hidden"></div>
             </form>
@@ -466,15 +468,28 @@
             </label>
           </div>
 
-          <!-- Legend Box -->
-          <div class="map-legend">
-            <b class="text-white">Keterangan Wilayah</b><br>
-            <span class="dot" style="background:#e53935"></span>Banten<br>
-            <span class="dot" style="background:#1e5bd7"></span>DKI Jakarta<br>
-            <span class="dot" style="background:#43a047"></span>Jawa Barat<br>
-            <span class="dot" style="background:#f59e0b"></span>Lainnya<br>
-            <span class="text-slate-400">Garis solid = 5 KM</span><br>
-            <span class="text-slate-400">Garis putus-putus = 10 KM</span>
+          <!-- Legend Box (Collapsible / Dapat di-minimize) -->
+          <div class="map-legend transition-all duration-200 shadow-xl">
+            <div class="flex items-center justify-between gap-3 cursor-pointer select-none" onclick="toggleLegendCollapse()" title="Klik untuk minimize / expand keterangan">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs">🗺️</span>
+                <b class="text-white text-[11px]">Keterangan Wilayah</b>
+              </div>
+              <button type="button" id="legendToggleBtn" class="text-slate-400 hover:text-white text-[10px] px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">
+                ▼
+              </button>
+            </div>
+            
+            <div id="legendBody" class="mt-2 pt-2 border-t border-slate-700/80 leading-relaxed">
+              <span class="dot" style="background:#e53935"></span>Banten<br>
+              <span class="dot" style="background:#1e5bd7"></span>DKI Jakarta<br>
+              <span class="dot" style="background:#43a047"></span>Jawa Barat<br>
+              <span class="dot" style="background:#f59e0b"></span>Lainnya<br>
+              <div class="mt-1 pt-1 border-t border-slate-800 text-[10px] text-slate-400">
+                Garis solid = 5 KM<br>
+                Garis putus-putus = 10 KM
+              </div>
+            </div>
           </div>
 
           <div class="map-attr">© OpenStreetMap contributors · OpenFreeMap · Nominatim</div>
@@ -1310,6 +1325,60 @@
       }
     }
 
+    // Helper: Ekstraksi Koordinat Otomatis dari Link Google Maps atau Teks Angka
+    function parseCoordsFromText(text) {
+      if (!text) return null;
+      text = text.trim();
+
+      // Pola 1: @-6.123456,106.123456
+      let m = text.match(/@(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
+      if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+
+      // Pola 2: q=-6.123456,106.123456 atau query=-6.123456,106.123456
+      m = text.match(/(?:q|query|ll)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
+      if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+
+      // Pola 3: !3d-6.123456!4d106.123456 (format URL data Google Maps)
+      m = text.match(/!3d(-?\d+\.\d+).*?!4d(-?\d+\.\d+)/);
+      if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+
+      // Pola 4: Angka koordinat murni: "-6.2239, 106.8491"
+      m = text.match(/(-?\d{1,2}\.\d+)[,\s]+(1\d{2}\.\d+)/);
+      if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+
+      return null;
+    }
+
+    // Auto-detect realtime saat user paste link ke input
+    function autoDetectCoordsFromUrl(val) {
+      const coords = parseCoordsFromText(val);
+      const badge = document.getElementById('coordDetectionBadge');
+      if (coords) {
+        document.getElementById('newShopLat').value = coords.lat;
+        document.getElementById('newShopLng').value = coords.lng;
+        badge.className = "text-[10px] text-emerald-400 font-bold";
+        badge.innerText = "✓ Terdeteksi dari Link!";
+      } else {
+        badge.className = "text-[10px] text-slate-500";
+        badge.innerText = "Otomatis / Manual";
+      }
+    }
+
+    // Minimize / Expand Legend Keterangan Wilayah
+    let isLegendCollapsed = false;
+    function toggleLegendCollapse() {
+      isLegendCollapsed = !isLegendCollapsed;
+      const body = document.getElementById('legendBody');
+      const btn = document.getElementById('legendToggleBtn');
+      if (isLegendCollapsed) {
+        body.classList.add('hidden');
+        btn.innerText = "▲";
+      } else {
+        body.classList.remove('hidden');
+        btn.innerText = "▼";
+      }
+    }
+
     async function handleAddNewStore(e) {
       e.preventDefault();
       const name = document.getElementById('newShopName').value.trim();
@@ -1320,16 +1389,34 @@
       let lat = parseFloat(document.getElementById('newShopLat').value);
       let lng = parseFloat(document.getElementById('newShopLng').value);
 
+      // Cek apakah di mapsUrl atau di alamat ada koordinat tersembunyi
+      if (isNaN(lat) || isNaN(lng)) {
+        const fromUrl = parseCoordsFromText(mapsUrl);
+        if (fromUrl) {
+          lat = fromUrl.lat;
+          lng = fromUrl.lng;
+        } else {
+          const fromAddr = parseCoordsFromText(address);
+          if (fromAddr) {
+            lat = fromAddr.lat;
+            lng = fromAddr.lng;
+          }
+        }
+      }
+
       const statusEl = document.getElementById('addStoreStatus');
       const submitBtn = document.getElementById('btnSubmitStore');
 
       statusEl.className = "text-[11px] text-center pt-1 text-blue-400 block";
-      statusEl.innerText = "⏳ Sedang mencari titik koordinat alamat...";
+      statusEl.innerText = "⏳ Sedang memproses lokasi toko...";
       submitBtn.disabled = true;
 
       try {
+        // Jika koordinat belum terisi dari URL, cari via Geocoder Nominatim
         if (isNaN(lat) || isNaN(lng)) {
-          const query = encodeURIComponent(address + ", Indonesia");
+          // Bersihkan query: ambil alamat utama tanpa kata berlebihan
+          let cleanQuery = address.replace(/(rt|rw|no|kelurahan|kecamatan)\.?\s*\d+/gi, '').trim();
+          const query = encodeURIComponent((cleanQuery || address) + ", Indonesia");
           const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
           const data = await res.json();
 
@@ -1337,6 +1424,7 @@
             lat = parseFloat(data[0].lat);
             lng = parseFloat(data[0].lon);
           } else {
+            // Coba dengan potongan pertama alamat (nama jalan/daerah)
             const fallbackQuery = encodeURIComponent(address.split(',')[0] + ", Indonesia");
             const res2 = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${fallbackQuery}&limit=1`);
             const data2 = await res2.json();
@@ -1344,12 +1432,12 @@
               lat = parseFloat(data2[0].lat);
               lng = parseFloat(data2[0].lon);
             } else {
-              throw new Error("Alamat tidak ditemukan. Silakan masukkan koordinat Latitude & Longitude manual.");
+              throw new Error("Koordinat tidak ditemukan otomatis. Silakan buka Google Maps toko tersebut, copy angka koordinatnya (contoh: -6.2239, 106.8491) lalu paste ke kolom koordinat.");
             }
           }
         }
 
-        if (!mapsUrl) {
+        if (!mapsUrl || !mapsUrl.startsWith('http')) {
           mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
         }
 
@@ -1365,17 +1453,20 @@
         renderStoreListUI();
 
         if (mapInstance) {
-          mapInstance.flyTo({ center: [lng, lat], zoom: 13 });
+          mapInstance.flyTo({ center: [lng, lat], zoom: 13.5 });
         }
 
         statusEl.className = "text-[11px] text-center pt-1 text-emerald-400 block";
-        statusEl.innerText = `✅ Berhasil! Pin #${newId} ditambahkan pada (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+        statusEl.innerText = `✅ Berhasil! Pin #${newId} (${name}) ditancapkan pada titik (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
 
+        // Reset input form
         document.getElementById('newShopName').value = "";
         document.getElementById('newShopAddress').value = "";
         document.getElementById('newShopUrl').value = "";
         document.getElementById('newShopLat').value = "";
         document.getElementById('newShopLng').value = "";
+        document.getElementById('coordDetectionBadge').innerText = "Otomatis / Manual";
+        document.getElementById('coordDetectionBadge').className = "text-[10px] text-slate-500";
       } catch (err) {
         statusEl.className = "text-[11px] text-center pt-1 text-rose-400 block";
         statusEl.innerText = "❌ " + err.message;
