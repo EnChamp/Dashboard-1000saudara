@@ -23,11 +23,10 @@
       margin: 0; 
     }
     #mapContainer { width: 100%; height: calc(100vh - 120px); min-height: 600px; position: relative; border-radius: 1rem; overflow: hidden; }
-    .map-panel, .map-legend, .map-add-panel, .map-list-panel { position: absolute; z-index: 5; background: #0f172aee; border: 1px solid #334155; color: #f8fafc; padding: 12px; border-radius: 12px; font-size: 12px; backdrop-filter: blur(8px); }
+    .map-panel, .map-add-panel, .map-list-panel { position: absolute; z-index: 5; background: #0f172aee; border: 1px solid #334155; color: #f8fafc; padding: 12px; border-radius: 12px; font-size: 12px; backdrop-filter: blur(8px); }
     .map-panel { right: 14px; top: 14px; min-width: 190px; }
     .map-add-panel { left: 14px; top: 14px; width: 320px; max-height: calc(100% - 30px); overflow-y: auto; }
     .map-list-panel { left: 14px; top: 14px; width: 360px; max-height: calc(100% - 30px); overflow-y: auto; }
-    .map-legend { left: 14px; bottom: 25px; line-height: 1.6; }
     .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
     .marker { width: 28px; height: 28px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.4); cursor: pointer; }
     .marker span { transform: rotate(45deg); color: white; font-weight: bold; font-size: 11px; }
@@ -115,7 +114,16 @@
           </div>
         </button>
 
-        <!-- Tab 2: Peta Interaktif -->
+        <!-- Tab 2: Sales Tracker & Reconcile -->
+        <button onclick="switchAppTab('sales')" id="navBtnSales" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 border border-transparent transition text-left group">
+          <span class="text-base group-hover:scale-110 transition-transform">🧾</span>
+          <div class="flex flex-col">
+            <span>Sales Tracker & Reconcile</span>
+            <span class="text-[10px] text-slate-500 font-normal">Order Log, Distributor & Finance</span>
+          </div>
+        </button>
+
+        <!-- Tab 3: Peta Interaktif -->
         <button onclick="switchAppTab('map')" id="navBtnMap" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 border border-transparent transition text-left group">
           <span class="text-base group-hover:scale-110 transition-transform">📍</span>
           <div class="flex flex-col">
@@ -131,7 +139,7 @@
           <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
           <span class="text-[11px]">Sistem Online</span>
         </div>
-        <span class="text-[10px] text-slate-400 font-mono">v5.4 Multi-App</span>
+        <span class="text-[10px] text-slate-400 font-mono">v6.0 Sales & Recon</span>
       </div>
     </div>
   </aside>
@@ -333,7 +341,343 @@
       </div>
     </section>
 
-    <!-- VIEW 2: PETA INTERAKTIF TB1000SAUDARA -->
+    <!-- VIEW 2: SALES TRACKER & RECONCILE ENGINE -->
+    <section id="viewSales" class="hidden space-y-6">
+      <!-- Header -->
+      <div class="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-2">
+            <span>● Sales Tracker & Multi-Distributor Reconcile</span>
+          </div>
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2 flex-wrap">
+            <span>Sales Tracker</span>
+            <span class="brand-font"><span class="text-[#2563eb]">1000</span><span class="text-[#ea580c]">saudara</span></span>
+          </h1>
+          <p class="text-sm text-slate-400 mt-1">Pencatatan Penjualan Marketplace, Perhitungan Otomatis Rumus Fee & Margin, serta Generator Reconcile Distributor & Finance</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="openAddSalesModal()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition">
+            <span>➕ Tambah Transaksi</span>
+          </button>
+          <button onclick="toggleDistributorBankModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-indigo-500/20 transition">
+            <span>🏦 Distributor & Rekening</span>
+          </button>
+          <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+            <span>📥 Import Excel/CSV</span>
+            <input type="file" id="salesFileUploadInput" accept=".xlsx, .xls, .csv" onchange="handleSalesFileUpload(event)" class="hidden">
+          </label>
+          <button onclick="exportSalesTrackerExcel()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition">
+            <span>📤 Export Tracker</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <p class="text-[11px] text-slate-400 font-medium">Total Transaksi / Unit</p>
+          <p id="salesKpiCount" class="text-lg font-bold text-white mt-1 font-mono">0 Trx / 0 Unit</p>
+          <p class="text-[10px] text-slate-500 mt-1">Sesuai filter aktif</p>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <p class="text-[11px] text-slate-400 font-medium">Total Nilai Jual MP (Bruto)</p>
+          <p id="salesKpiGross" class="text-lg font-bold text-sky-400 mt-1 font-mono">Rp 0</p>
+          <p class="text-[10px] text-slate-500 mt-1">MP Price × Unit</p>
+        </div>
+        <div class="bg-slate-900 border border-emerald-900/40 rounded-xl p-4">
+          <p class="text-[11px] text-slate-400 font-medium">Transfer ke Distributor</p>
+          <p id="salesKpiTransfer" class="text-lg font-bold text-emerald-400 mt-1 font-mono">Rp 0</p>
+          <p class="text-[10px] text-slate-500 mt-1">Price After Fee × Unit</p>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <p class="text-[11px] text-slate-400 font-medium">Total HPP / Beli Dist</p>
+          <p id="salesKpiCost" class="text-lg font-bold text-slate-200 mt-1 font-mono">Rp 0</p>
+          <p class="text-[10px] text-slate-500 mt-1">Price From Dist × Unit</p>
+        </div>
+        <div class="bg-slate-900 border border-amber-900/40 rounded-xl p-4">
+          <p class="text-[11px] text-slate-400 font-medium">Net Revenue / Invoice Tagihan</p>
+          <p id="salesKpiRevenue" class="text-lg font-bold text-amber-400 mt-1 font-mono">Rp 0</p>
+          <p id="salesKpiSubText" class="text-[10px] text-slate-500 mt-1">Selisih After Fee - HPP</p>
+        </div>
+      </div>
+
+      <!-- RECONCILE GENERATOR BAR (DATE RANGE + BUTTONS) -->
+      <div class="max-w-7xl mx-auto bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/30 border border-indigo-500/30 rounded-2xl p-4 shadow-xl">
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-lg shrink-0 mt-0.5">
+              📑
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Generator Data Reconcile Otomatis (Multi-Distributor)</h3>
+              <p class="text-xs text-slate-400 mt-0.5">Pilih rentang tanggal transaksi. Jika terdapat lebih dari 1 distributor pada periode tersebut, sistem otomatis memisahkan file/sheet per masing-masing distributor.</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-end gap-2.5">
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Dari Tanggal</label>
+              <input type="date" id="reconStartDate" onchange="filterSalesTable()" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono">
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Sampai Tanggal</label>
+              <input type="date" id="reconEndDate" onchange="filterSalesTable()" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono">
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-1">Filter Distributor</label>
+              <select id="reconDistFilter" onchange="filterSalesTable()" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500 max-w-[200px]">
+                <option value="ALL">Semua Distributor</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-2 pt-1 sm:pt-0">
+              <button onclick="generateReconcileDistributor()" class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-sky-500/20 transition">
+                <span>📦 Create Reconcile Data To Distributor</span>
+              </button>
+              <button onclick="generateReconcileFinance()" class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-amber-500/20 transition">
+                <span>💰 Create Reconcile Data To Finance</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SALES TRACKER TABLE CONTAINER -->
+      <div class="max-w-7xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+        <!-- Table Toolbar -->
+        <div class="p-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <input type="text" id="salesSearchInput" oninput="filterSalesTable()" placeholder="Cari Trx Number, Produk, Distributor, Source..." class="bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 w-64 md:w-72">
+            <select id="salesStatusFilter" onchange="filterSalesTable()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-300 focus:outline-none">
+              <option value="ALL">Semua Status</option>
+              <option value="Selesai">Selesai</option>
+              <option value="Proses">Proses</option>
+              <option value="Batal">Batal</option>
+            </select>
+            <button onclick="clearSalesDateFilter()" class="text-[11px] text-slate-400 hover:text-white underline">Reset Filter</button>
+          </div>
+
+          <div class="flex items-center gap-3 text-xs text-slate-400 flex-wrap">
+            <div class="flex items-center gap-1.5">
+              <span>Tampilkan:</span>
+              <select id="salesPageSizeSelect" onchange="changeSalesPageSize(this.value)" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                <option value="10">10 per halaman</option>
+                <option value="25">25 per halaman</option>
+                <option value="50">50 per halaman</option>
+                <option value="100">100 per halaman</option>
+                <option value="999999">Semua</option>
+              </select>
+            </div>
+            <span id="salesRowCountLabel">Menampilkan 0 baris</span>
+            <button onclick="resetSalesSampleData()" class="text-[11px] text-rose-400/80 hover:text-rose-300 underline" title="Reset ke data contoh awal">Reset Sample</button>
+          </div>
+        </div>
+
+        <!-- Horizontal Scrollable Spreadsheet Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-[11px] border-collapse whitespace-nowrap">
+            <thead class="bg-slate-950/80 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
+              <tr>
+                <th class="p-3 text-center">No</th>
+                <th class="p-3">Source</th>
+                <th class="p-3">Trx Date</th>
+                <th class="p-3">Trx Number</th>
+                <th class="p-3">Distributor</th>
+                <th class="p-3 min-w-[220px]">Prod Name</th>
+                <th class="p-3 text-right">MP Price</th>
+                <th class="p-3 text-right">Price From Dist</th>
+                <th class="p-3 text-right bg-emerald-950/20 text-emerald-300">Price After Fee</th>
+                <th class="p-3 text-center">Unit</th>
+                <th class="p-3 text-right bg-slate-950/60" title="Rumus: Price From Dist * Unit">Total For Dist ƒ</th>
+                <th class="p-3 text-right bg-emerald-950/20 text-emerald-300" title="Rumus: Price After Fee * Unit">Total (Transfer) ƒ</th>
+                <th class="p-3 text-right" title="Rumus: (MP Price - Price After Fee) / MP Price">Fee (%) ƒ</th>
+                <th class="p-3 text-right" title="Rumus: (MP Price - Price After Fee) * Unit">Fee (Rp) ƒ</th>
+                <th class="p-3 text-right" title="Rumus: Total - Total For Dist">Revenue ƒ</th>
+                <th class="p-3 text-center">Status</th>
+                <th class="p-3 text-right" title="Rumus: Jika Selesai = Revenue">Actual P/L ƒ</th>
+                <th class="p-3 text-right" title="Rumus: Jika Revenue < 0 maka ABS(Revenue)">Subsidy ƒ</th>
+                <th class="p-3 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="salesTableBody" class="divide-y divide-slate-800/60 text-slate-300 font-medium">
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Footer Sales Tracker -->
+        <div class="p-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 bg-slate-950/30">
+          <div id="salesPaginationInfo">Menampilkan 1 - 10 dari 10 transaksi</div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <button id="salesFirstBtn" onclick="goToSalesPage(1)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition" title="Halaman Pertama">«</button>
+            <button id="salesPrevBtn" onclick="prevSalesPage()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition">← Sebelumnya</button>
+            <div id="salesPageNumbersContainer" class="flex items-center gap-1"></div>
+            <button id="salesNextBtn" onclick="nextSalesPage()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition">Selanjutnya →</button>
+            <button id="salesLastBtn" onclick="goToLastSalesPage()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition" title="Halaman Terakhir">»</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODAL: TAMBAH / EDIT TRANSAKSI SALES TRACKER -->
+    <div id="salesFormModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+          <h3 id="salesModalTitle" class="text-base font-bold text-white flex items-center gap-2">
+            <span>🧾</span> Tambah Transaksi Penjualan Baru
+          </h3>
+          <button onclick="closeSalesModal()" class="text-slate-400 hover:text-white text-sm px-2 py-1 rounded bg-slate-800">✕</button>
+        </div>
+
+        <form onsubmit="saveSalesTransaction(event)" class="space-y-4 text-xs">
+          <input type="hidden" id="editSalesId" value="">
+          
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-slate-400 mb-1 font-medium">Source / Marketplace *</label>
+              <select id="formSalesSource" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+                <option value="Tokopedia">Tokopedia</option>
+                <option value="Shopee">Shopee</option>
+                <option value="TIKTOK">TIKTOK</option>
+                <option value="TOCO">TOCO</option>
+                <option value="Direct / B2B">Direct / B2B</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-medium">Trx Date *</label>
+              <input type="date" id="formSalesDate" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-mono">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-medium">Trx Number / Invoice *</label>
+              <input type="text" id="formSalesTrxNum" required placeholder="Contoh: 583541918555211673" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-mono">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-400 mb-1 font-medium">Distributor *</label>
+              <input type="text" id="formSalesDist" list="distributorDatalist" required placeholder="Pilih atau ketik nama distributor" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+              <datalist id="distributorDatalist"></datalist>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-medium">Status Pesanan</label>
+              <select id="formSalesStatus" onchange="recalcSalesModalPreview()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+                <option value="Selesai">Selesai</option>
+                <option value="Proses">Proses</option>
+                <option value="Batal">Batal</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">Prod Name (Nama Produk) *</label>
+            <input type="text" id="formSalesProdName" required placeholder="Contoh: Lampu Bohlam EcoKing LED Kingdom Putih 5 Watt (Pieces)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-slate-400 mb-1 font-medium">MP Price (Rp) *</label>
+              <input type="number" step="any" id="formSalesMpPrice" required oninput="recalcSalesModalPreview()" placeholder="13000" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-mono">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-medium">Price From Dist (Rp) *</label>
+              <input type="number" step="any" id="formSalesDistPrice" required oninput="recalcSalesModalPreview()" placeholder="10200" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-mono">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-medium">Price After Fee (Rp) *</label>
+              <input type="number" step="any" id="formSalesAfterFee" required oninput="recalcSalesModalPreview()" placeholder="9735" class="w-full bg-slate-950 border border-emerald-500/50 rounded-xl px-3 py-2 text-emerald-300 focus:outline-none focus:border-emerald-400 font-mono">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-medium">Unit (Qty) *</label>
+              <input type="number" step="1" min="1" id="formSalesUnit" value="1" required oninput="recalcSalesModalPreview()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-mono">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">Notes (Catatan Opsional)</label>
+            <input type="text" id="formSalesNotes" placeholder="Catatan tambahan jika ada..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+          </div>
+
+          <!-- Live Formula Preview Box -->
+          <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <span class="text-[10px] text-slate-500 block">Total For Dist (HPP)</span>
+              <span id="prevTotalDist" class="text-xs font-bold text-slate-200 font-mono">Rp 0</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 block">Total (Transfer ke Dist)</span>
+              <span id="prevTotalTransfer" class="text-xs font-bold text-emerald-400 font-mono">Rp 0</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 block">Fee MP (% / Rp)</span>
+              <span id="prevFeeInfo" class="text-xs font-bold text-sky-400 font-mono">0% (Rp 0)</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 block">Revenue / Subsidy</span>
+              <span id="prevRevSub" class="text-xs font-bold text-amber-400 font-mono">Rp 0</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+            <button type="button" onclick="closeSalesModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold">Batal</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20">💾 Simpan Transaksi</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: DISTRIBUTOR CREATION DATA & REKENING BANK -->
+    <div id="distributorBankModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-3xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>🏦</span> Master Data Distributor & Rekening Bank
+            </h3>
+            <p class="text-[11px] text-slate-400 mt-0.5">Data rekening di bawah ini akan otomatis dicantumkan pada file Reconcile Finance untuk masing-masing distributor.</p>
+          </div>
+          <button onclick="toggleDistributorBankModal()" class="text-slate-400 hover:text-white text-sm px-2.5 py-1 rounded bg-slate-800">Tutup</button>
+        </div>
+
+        <!-- Form Tambah / Update Distributor -->
+        <form onsubmit="saveDistributorMaster(event)" class="bg-slate-950/70 border border-slate-800 rounded-xl p-4 mb-4 space-y-3 text-xs">
+          <div class="text-[11px] font-bold text-indigo-400 uppercase tracking-wider">Tambah / Update Rekening Distributor</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-400 mb-1">Nama Distributor (Sesuai Sales Tracker) *</label>
+              <input type="text" id="distMasterName" required placeholder="Contoh: PT HAGIA INTEGRASI SOLUSITAMA" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Nama Bank *</label>
+              <input type="text" id="distMasterBank" required placeholder="Contoh: BCA / Mandiri / BNI" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Nomor Rekening *</label>
+              <input type="text" id="distMasterAccNum" required placeholder="Contoh: 8821881200" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500 font-mono">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Atas Nama Rekening (a/n) *</label>
+              <input type="text" id="distMasterAccHolder" required placeholder="Contoh: Betty Marjuki" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition">
+              ➕ Simpan Data Rekening Distributor
+            </button>
+          </div>
+        </form>
+
+        <!-- List Saved Distributors -->
+        <div class="space-y-2">
+          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Daftar Distributor Tersimpan</div>
+          <div id="distributorMasterList" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: PETA INTERAKTIF TB1000SAUDARA -->
     <section id="viewMap" class="hidden space-y-4">
       <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
         <div>
@@ -468,29 +812,7 @@
             </label>
           </div>
 
-          <!-- Legend Box (Collapsible / Dapat di-minimize) -->
-          <div class="map-legend transition-all duration-200 shadow-xl">
-            <div class="flex items-center justify-between gap-3 cursor-pointer select-none" onclick="toggleLegendCollapse()" title="Klik untuk minimize / expand keterangan">
-              <div class="flex items-center gap-1.5">
-                <span class="text-xs">🗺️</span>
-                <b class="text-white text-[11px]">Keterangan Wilayah</b>
-              </div>
-              <button type="button" id="legendToggleBtn" class="text-slate-400 hover:text-white text-[10px] px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">
-                ▼
-              </button>
-            </div>
-            
-            <div id="legendBody" class="mt-2 pt-2 border-t border-slate-700/80 leading-relaxed">
-              <span class="dot" style="background:#e53935"></span>Banten<br>
-              <span class="dot" style="background:#1e5bd7"></span>DKI Jakarta<br>
-              <span class="dot" style="background:#43a047"></span>Jawa Barat<br>
-              <span class="dot" style="background:#f59e0b"></span>Lainnya<br>
-              <div class="mt-1 pt-1 border-t border-slate-800 text-[10px] text-slate-400">
-                Garis solid = 5 KM<br>
-                Garis putus-putus = 10 KM
-              </div>
-            </div>
-          </div>
+
 
           <div class="map-attr">© OpenStreetMap contributors · OpenFreeMap · Nominatim</div>
         </div>
@@ -676,20 +998,32 @@
 
     function switchAppTab(tab) {
       const viewDash = document.getElementById('viewDashboard');
+      const viewSales = document.getElementById('viewSales');
       const viewMap = document.getElementById('viewMap');
       const btnDash = document.getElementById('navBtnDashboard');
+      const btnSales = document.getElementById('navBtnSales');
       const btnMap = document.getElementById('navBtnMap');
+
+      const inactiveClass = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 border border-transparent transition text-left group";
+
+      viewDash.classList.add('hidden');
+      viewSales.classList.add('hidden');
+      viewMap.classList.add('hidden');
+      btnDash.className = inactiveClass;
+      btnSales.className = inactiveClass;
+      btnMap.className = inactiveClass;
 
       if (tab === 'dashboard') {
         viewDash.classList.remove('hidden');
-        viewMap.classList.add('hidden');
         btnDash.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 transition text-left group";
-        btnMap.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 border border-transparent transition text-left group";
-      } else {
-        viewDash.classList.add('hidden');
+      } else if (tab === 'sales') {
+        viewSales.classList.remove('hidden');
+        btnSales.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 transition text-left group";
+        updateDistributorSelectOptions();
+        renderSalesTable();
+      } else if (tab === 'map') {
         viewMap.classList.remove('hidden');
         btnMap.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/30 transition text-left group";
-        btnDash.className = "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 border border-transparent transition text-left group";
 
         if (!isMapInitialized) {
           setTimeout(initInteractiveMap, 100);
@@ -1631,7 +1965,987 @@
       });
     }
 
+
+    // ==========================================
+    // DATA & LOGIC: SALES TRACKER & RECONCILE ENGINE
+    // ==========================================
+    const initialDistributors = [
+      {
+        id: 1,
+        name: "PT HAGIA INTEGRASI SOLUSITAMA",
+        bank: "BCA",
+        accountNumber: "8821881200",
+        accountHolder: "Betty Marjuki"
+      },
+      {
+        id: 2,
+        name: "PT SANLEX",
+        bank: "BCA",
+        accountNumber: "1234567890",
+        accountHolder: "PT Sanlex Indonesia"
+      },
+      {
+        id: 3,
+        name: "EVOMAB INDONESIA",
+        bank: "Mandiri",
+        accountNumber: "1300098765432",
+        accountHolder: "PT Evomab"
+      }
+    ];
+
+    const initialSalesData = [
+      { id: 1, source: "Tokopedia", trxDate: "2026-04-15", trxNumber: "583541918555211673", distributor: "PT HAGIA INTEGRASI SOLUSITAMA", prodName: "Lampu Bohlam EcoKing LED Kingdom Putih 5 Watt (Pieces)", mpPrice: 13000, distPrice: 10200, afterFee: 9735, unit: 1, status: "Selesai", notes: "" },
+      { id: 2, source: "Tokopedia", trxDate: "2026-04-16", trxNumber: "583552483686909001", distributor: "PT HAGIA INTEGRASI SOLUSITAMA", prodName: "Lem Besi Araldite Epoxy Rapid 5 Menit Clear 2 x 15 ml (Pieces)", mpPrice: 39000, distPrice: 27800, afterFee: 31705, unit: 1, status: "Selesai", notes: "" },
+      { id: 3, source: "Tokopedia", trxDate: "2026-04-20", trxNumber: "583612447135270791", distributor: "PT HAGIA INTEGRASI SOLUSITAMA", prodName: "Cat Semprot Anti Karat ARTIC PENETRATING Full Penetrate 300 ml (Kaleng)", mpPrice: 35000, distPrice: 24500, afterFee: 28587, unit: 1, status: "Selesai", notes: "" },
+      { id: 4, source: "TIKTOK", trxDate: "2026-05-04", trxNumber: "583852497506239501", distributor: "PT HAGIA INTEGRASI SOLUSITAMA", prodName: "Cat Semprot Anti Karat ARTIC PENETRATING Full Penetrate 300 ml (Kaleng)", mpPrice: 37500, distPrice: 24500, afterFee: 30719, unit: 1, status: "Selesai", notes: "" },
+      { id: 5, source: "TOCO", trxDate: "2026-05-08", trxNumber: "28700269711", distributor: "PT HAGIA INTEGRASI SOLUSITAMA", prodName: "Silicone Sealant KinarPro Acetoxy Clear 300 ml (Botol)", mpPrice: 24800, distPrice: 22300, afterFee: 24800, unit: 2, status: "Selesai", notes: "" },
+      { id: 6, source: "TOCO", trxDate: "2026-05-08", trxNumber: "28700269711", distributor: "PT HAGIA INTEGRASI SOLUSITAMA", prodName: "Alat Tembak Sealant KinarPro Tabung (Pieces)", mpPrice: 31900, distPrice: 28700, afterFee: 31900, unit: 1, status: "Selesai", notes: "" },
+      { id: 7, source: "TOCO", trxDate: "2026-05-08", trxNumber: "28700269711", distributor: "PT HAGIA INTEGRASI SOLUSITAMA", prodName: "Pengeras Beton KinarDK 5 Liter (Jerigen)", mpPrice: 105000, distPrice: 94500, afterFee: 105000, unit: 3, status: "Selesai", notes: "" },
+      { id: 8, source: "Tokopedia", trxDate: "2026-06-02", trxNumber: "584318093636700019", distributor: "PT HAGIA INTEGRASI SOLUSITAMA", prodName: "Anti Karat ARTIC PENETRATING Full Penetrate 300 ml Spray Anti Karat", mpPrice: 37400, distPrice: 29500, afterFee: 29885, unit: 1, status: "Selesai", notes: "" },
+      { id: 9, source: "Tokopedia", trxDate: "2026-07-01", trxNumber: "584787450194658688", distributor: "PT HAGIA INTEGRASI SOLUSITAMA", prodName: "Lem Besi Araldite Standard Clear 2 x 15 ml", mpPrice: 28800, distPrice: 20000, afterFee: 21055, unit: 1, status: "Selesai", notes: "" }
+    ];
+
+    let distributorMasters = [];
+    let salesRecords = [];
+
+    try {
+      const savedDist = localStorage.getItem('1000saudara_distributor_masters');
+      distributorMasters = savedDist ? JSON.parse(savedDist) : JSON.parse(JSON.stringify(initialDistributors));
+    } catch(e) {
+      distributorMasters = JSON.parse(JSON.stringify(initialDistributors));
+    }
+
+    try {
+      const savedSales = localStorage.getItem('1000saudara_sales_tracker_records');
+      salesRecords = savedSales ? JSON.parse(savedSales) : JSON.parse(JSON.stringify(initialSalesData));
+    } catch(e) {
+      salesRecords = JSON.parse(JSON.stringify(initialSalesData));
+    }
+
+    function saveDistributorMasters() {
+      localStorage.setItem('1000saudara_distributor_masters', JSON.stringify(distributorMasters));
+      updateDistributorSelectOptions();
+    }
+
+    function saveSalesRecords() {
+      localStorage.setItem('1000saudara_sales_tracker_records', JSON.stringify(salesRecords));
+      updateDistributorSelectOptions();
+    }
+
+    // Formula engine replicating Google Sheet "Sales Tracker"
+    function computeSalesRowMetrics(row) {
+      const mpPrice = parseFloat(row.mpPrice) || 0;
+      const distPrice = parseFloat(row.distPrice) || 0;
+      const afterFee = parseFloat(row.afterFee) || 0;
+      const unit = parseFloat(row.unit) || 0;
+
+      const grossTotal = mpPrice * unit;           // Nilai Jual MP (Bruto)
+      const totalForDist = distPrice * unit;      // Total For Dist (HPP)
+      const totalTransfer = afterFee * unit;      // Total (Transfer ke Distributor)
+      const feePct = mpPrice > 0 ? ((mpPrice - afterFee) / mpPrice) : 0; // Fee (%)
+      const feeRp = (mpPrice - afterFee) * unit;  // Fee (Rp)
+      const revenue = totalTransfer - totalForDist; // Revenue / Selisih Invoice
+      const actualPL = (row.status === "Selesai") ? revenue : 0;
+      const subsidy = revenue < 0 ? Math.abs(revenue) : 0;
+
+      return {
+        grossTotal,
+        totalForDist,
+        totalTransfer,
+        feePct,
+        feeRp,
+        revenue,
+        actualPL,
+        subsidy
+      };
+    }
+
+    function updateDistributorSelectOptions() {
+      const uniqueDists = new Set();
+      distributorMasters.forEach(d => { if (d.name) uniqueDists.add(d.name.trim()); });
+      salesRecords.forEach(r => { if (r.distributor) uniqueDists.add(r.distributor.trim()); });
+
+      const datalist = document.getElementById('distributorDatalist');
+      if (datalist) {
+        datalist.innerHTML = Array.from(uniqueDists).map(name => `<option value="${name}">`).join('');
+      }
+
+      const filterSelect = document.getElementById('reconDistFilter');
+      if (filterSelect) {
+        const currentVal = filterSelect.value || "ALL";
+        let opts = `<option value="ALL">Semua Distributor (${uniqueDists.size})</option>`;
+        Array.from(uniqueDists).sort().forEach(name => {
+          opts += `<option value="${name}">${name}</option>`;
+        });
+        filterSelect.innerHTML = opts;
+        if (Array.from(uniqueDists).includes(currentVal) || currentVal === "ALL") {
+          filterSelect.value = currentVal;
+        }
+      }
+    }
+
+    function getFilteredSalesRecords() {
+      const search = (document.getElementById('salesSearchInput')?.value || "").toLowerCase().trim();
+      const statusFilter = document.getElementById('salesStatusFilter')?.value || "ALL";
+      const distFilter = document.getElementById('reconDistFilter')?.value || "ALL";
+      const startDate = document.getElementById('reconStartDate')?.value || "";
+      const endDate = document.getElementById('reconEndDate')?.value || "";
+
+      return salesRecords.filter(r => {
+        if (statusFilter !== "ALL" && r.status !== statusFilter) return false;
+        if (distFilter !== "ALL" && (r.distributor || "").trim() !== distFilter) return false;
+        if (startDate && r.trxDate && r.trxDate < startDate) return false;
+        if (endDate && r.trxDate && r.trxDate > endDate) return false;
+
+        if (search) {
+          const hay = `${r.trxNumber} ${r.prodName} ${r.distributor} ${r.source} ${r.notes}`.toLowerCase();
+          if (!hay.includes(search)) return false;
+        }
+        return true;
+      });
+    }
+
+    let salesCurrentPage = 1;
+    let salesPageSize = 10;
+
+    function changeSalesPageSize(val) {
+      salesPageSize = parseInt(val) || 10;
+      salesCurrentPage = 1;
+      renderSalesTable();
+    }
+
+    function prevSalesPage() {
+      if (salesCurrentPage > 1) {
+        salesCurrentPage--;
+        renderSalesTable();
+      }
+    }
+
+    function nextSalesPage() {
+      const filtered = getFilteredSalesRecords();
+      const totalPages = Math.ceil(filtered.length / salesPageSize) || 1;
+      if (salesCurrentPage < totalPages) {
+        salesCurrentPage++;
+        renderSalesTable();
+      }
+    }
+
+    function goToSalesPage(page) {
+      const filtered = getFilteredSalesRecords();
+      const totalPages = Math.ceil(filtered.length / salesPageSize) || 1;
+      salesCurrentPage = Math.max(1, Math.min(page, totalPages));
+      renderSalesTable();
+    }
+
+    function goToLastSalesPage() {
+      const filtered = getFilteredSalesRecords();
+      const totalPages = Math.ceil(filtered.length / salesPageSize) || 1;
+      salesCurrentPage = totalPages;
+      renderSalesTable();
+    }
+
+    function clearSalesDateFilter() {
+      document.getElementById('reconStartDate').value = "";
+      document.getElementById('reconEndDate').value = "";
+      document.getElementById('reconDistFilter').value = "ALL";
+      document.getElementById('salesSearchInput').value = "";
+      document.getElementById('salesStatusFilter').value = "ALL";
+      salesCurrentPage = 1;
+      renderSalesTable();
+    }
+
+    function filterSalesTable() {
+      salesCurrentPage = 1;
+      renderSalesTable();
+    }
+
+    function formatDisplayDate(isoStr) {
+      if (!isoStr) return "-";
+      const parts = isoStr.split("-");
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return isoStr;
+    }
+
+    function renderSalesTable() {
+      const tbody = document.getElementById('salesTableBody');
+      if (!tbody) return;
+
+      const filtered = getFilteredSalesRecords();
+      // Sort ascending by date
+      filtered.sort((a, b) => (a.trxDate || "").localeCompare(b.trxDate || ""));
+
+      // Hitung KPI dari seluruh data yang sesuai filter (bukan cuma halaman aktif)
+      let sumTrx = filtered.length;
+      let sumUnit = 0, sumGross = 0, sumTransfer = 0, sumCost = 0, sumRevenue = 0;
+
+      filtered.forEach(r => {
+        const m = computeSalesRowMetrics(r);
+        sumUnit += (parseFloat(r.unit) || 0);
+        sumGross += m.grossTotal;
+        sumTransfer += m.totalTransfer;
+        sumCost += m.totalForDist;
+        sumRevenue += m.revenue;
+      });
+
+      // Paginasi data untuk tampilan tabel
+      const totalPages = Math.ceil(filtered.length / salesPageSize) || 1;
+      if (salesCurrentPage > totalPages) salesCurrentPage = totalPages;
+      if (salesCurrentPage < 1) salesCurrentPage = 1;
+
+      const startIndex = (salesCurrentPage - 1) * salesPageSize;
+      const paginatedRows = filtered.slice(startIndex, startIndex + salesPageSize);
+
+      let html = "";
+      paginatedRows.forEach((r, idx) => {
+        const globalRowNumber = startIndex + idx + 1;
+        const m = computeSalesRowMetrics(r);
+
+        const revColor = m.revenue < 0 ? "text-rose-400 font-bold" : "text-emerald-400 font-bold";
+        const rowHighlight = m.revenue < 0 ? "bg-rose-950/15 hover:bg-rose-950/25" : "hover:bg-slate-800/40";
+        const statusBadge = r.status === "Selesai"
+          ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Selesai</span>`
+          : r.status === "Proses"
+          ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">Proses</span>`
+          : `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30">Batal</span>`;
+
+        html += `
+          <tr class="${rowHighlight} transition">
+            <td class="p-3 text-center text-slate-500 font-mono">${globalRowNumber}</td>
+            <td class="p-3 font-semibold text-white">${r.source || '-'}</td>
+            <td class="p-3 font-mono text-slate-300">${formatDisplayDate(r.trxDate)}</td>
+            <td class="p-3 font-mono text-sky-300">${r.trxNumber || '-'}</td>
+            <td class="p-3 text-slate-200 font-semibold">${r.distributor || '-'}</td>
+            <td class="p-3 text-white max-w-[260px] truncate" title="${(r.prodName || '').replace(/"/g, '&quot;')}">${r.prodName || '-'}</td>
+            <td class="p-3 text-right font-mono text-slate-300">${formatRupiah(r.mpPrice)}</td>
+            <td class="p-3 text-right font-mono text-slate-300">${formatRupiah(r.distPrice)}</td>
+            <td class="p-3 text-right font-mono font-bold text-emerald-300 bg-emerald-950/10">${formatRupiah(r.afterFee)}</td>
+            <td class="p-3 text-center font-mono font-bold text-white">${r.unit}</td>
+            <td class="p-3 text-right font-mono text-slate-300 bg-slate-950/40">${formatRupiah(m.totalForDist)}</td>
+            <td class="p-3 text-right font-mono font-bold text-emerald-400 bg-emerald-950/10">${formatRupiah(m.totalTransfer)}</td>
+            <td class="p-3 text-right font-mono text-slate-400">${(m.feePct * 100).toFixed(2)}%</td>
+            <td class="p-3 text-right font-mono text-slate-400">${formatRupiah(m.feeRp)}</td>
+            <td class="p-3 text-right font-mono ${revColor}">${m.revenue < 0 ? '-' : ''}Rp ${formatRupiah(Math.abs(m.revenue))}</td>
+            <td class="p-3 text-center">${statusBadge}</td>
+            <td class="p-3 text-right font-mono ${m.actualPL < 0 ? 'text-rose-400' : 'text-slate-200'}">${m.actualPL < 0 ? '-' : ''}Rp ${formatRupiah(Math.abs(m.actualPL))}</td>
+            <td class="p-3 text-right font-mono ${m.subsidy > 0 ? 'text-amber-400 font-semibold' : 'text-slate-500'}">${m.subsidy > 0 ? 'Rp ' + formatRupiah(m.subsidy) : '0'}</td>
+            <td class="p-3 text-center">
+              <div class="flex items-center justify-center gap-1">
+                <button onclick="openEditSalesModal(${r.id})" title="Edit Baris" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition">✏️</button>
+                <button onclick="deleteSalesRow(${r.id})" title="Hapus Baris" class="p-1 rounded bg-rose-950/50 hover:bg-rose-900 text-rose-300 transition">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      if (filtered.length === 0) {
+        html = `<tr><td colspan="19" class="p-8 text-center text-slate-500 italic">Tidak ada data transaksi pada filter/rentang tanggal ini. Klik "➕ Tambah Transaksi" atau "📥 Import Excel/CSV".</td></tr>`;
+      }
+
+      tbody.innerHTML = html;
+
+      // Update KPI Cards
+      document.getElementById('salesKpiCount').innerText = `${sumTrx} Trx / ${sumUnit} Unit`;
+      document.getElementById('salesKpiGross').innerText = `Rp ${formatRupiah(sumGross)}`;
+      document.getElementById('salesKpiTransfer').innerText = `Rp ${formatRupiah(sumTransfer)}`;
+      document.getElementById('salesKpiCost').innerText = `Rp ${formatRupiah(sumCost)}`;
+      const revSign = sumRevenue < 0 ? "-" : "";
+      document.getElementById('salesKpiRevenue').innerText = `${revSign}Rp ${formatRupiah(Math.abs(sumRevenue))}`;
+
+      // Update label & pagination footer
+      const endItem = Math.min(startIndex + salesPageSize, filtered.length);
+      const rangeText = filtered.length > 0
+        ? `Menampilkan ${startIndex + 1} - ${endItem} dari ${filtered.length} transaksi (Total semua: ${salesRecords.length})`
+        : `Tidak ada transaksi ditemukan`;
+
+      document.getElementById('salesRowCountLabel').innerText = filtered.length > 0
+        ? `Hal ${salesCurrentPage}/${totalPages} • ${filtered.length} transaksi`
+        : `0 transaksi`;
+      document.getElementById('salesPaginationInfo').innerText = rangeText;
+
+      document.getElementById('salesFirstBtn').disabled = (salesCurrentPage === 1 || filtered.length === 0);
+      document.getElementById('salesPrevBtn').disabled = (salesCurrentPage === 1 || filtered.length === 0);
+      document.getElementById('salesNextBtn').disabled = (salesCurrentPage === totalPages || filtered.length === 0);
+      document.getElementById('salesLastBtn').disabled = (salesCurrentPage === totalPages || filtered.length === 0);
+
+      // Render numbered page buttons (maksimal 5 tombol halaman di sekitar halaman aktif)
+      const pageContainer = document.getElementById('salesPageNumbersContainer');
+      if (pageContainer) {
+        let pageBtnsHtml = "";
+        let startPage = Math.max(1, salesCurrentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+        if (endPage - startPage < 4) {
+          startPage = Math.max(1, endPage - 4);
+        }
+
+        for (let p = startPage; p <= endPage; p++) {
+          const btnStyle = (p === salesCurrentPage)
+            ? "px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white font-bold transition"
+            : "px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition";
+          pageBtnsHtml += `<button onclick="goToSalesPage(${p})" class="${btnStyle}">${p}</button>`;
+        }
+        pageContainer.innerHTML = pageBtnsHtml;
+      }
+    }
+
+    // Add / Edit Sales Transaction Modal
+    function openAddSalesModal() {
+      document.getElementById('salesModalTitle').innerHTML = `<span>🧾</span> Tambah Transaksi Penjualan Baru`;
+      document.getElementById('editSalesId').value = "";
+      document.getElementById('formSalesSource').value = "Tokopedia";
+      document.getElementById('formSalesDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('formSalesTrxNum').value = "";
+      document.getElementById('formSalesDist').value = distributorMasters.length > 0 ? distributorMasters[0].name : "";
+      document.getElementById('formSalesProdName').value = "";
+      document.getElementById('formSalesMpPrice').value = "";
+      document.getElementById('formSalesDistPrice').value = "";
+      document.getElementById('formSalesAfterFee').value = "";
+      document.getElementById('formSalesUnit').value = 1;
+      document.getElementById('formSalesStatus').value = "Selesai";
+      document.getElementById('formSalesNotes').value = "";
+      recalcSalesModalPreview();
+      document.getElementById('salesFormModal').classList.remove('hidden');
+    }
+
+    function openEditSalesModal(id) {
+      const r = salesRecords.find(x => x.id === id);
+      if (!r) return;
+
+      document.getElementById('salesModalTitle').innerHTML = `<span>✏️</span> Edit Transaksi #${r.trxNumber}`;
+      document.getElementById('editSalesId').value = r.id;
+      document.getElementById('formSalesSource').value = r.source || "Tokopedia";
+      document.getElementById('formSalesDate').value = r.trxDate || "";
+      document.getElementById('formSalesTrxNum').value = r.trxNumber || "";
+      document.getElementById('formSalesDist').value = r.distributor || "";
+      document.getElementById('formSalesProdName').value = r.prodName || "";
+      document.getElementById('formSalesMpPrice').value = r.mpPrice || 0;
+      document.getElementById('formSalesDistPrice').value = r.distPrice || 0;
+      document.getElementById('formSalesAfterFee').value = r.afterFee || 0;
+      document.getElementById('formSalesUnit').value = r.unit || 1;
+      document.getElementById('formSalesStatus').value = r.status || "Selesai";
+      document.getElementById('formSalesNotes').value = r.notes || "";
+      recalcSalesModalPreview();
+      document.getElementById('salesFormModal').classList.remove('hidden');
+    }
+
+    function closeSalesModal() {
+      document.getElementById('salesFormModal').classList.add('hidden');
+    }
+
+    function recalcSalesModalPreview() {
+      const temp = {
+        mpPrice: parseFloat(document.getElementById('formSalesMpPrice').value) || 0,
+        distPrice: parseFloat(document.getElementById('formSalesDistPrice').value) || 0,
+        afterFee: parseFloat(document.getElementById('formSalesAfterFee').value) || 0,
+        unit: parseFloat(document.getElementById('formSalesUnit').value) || 0,
+        status: document.getElementById('formSalesStatus').value
+      };
+      const m = computeSalesRowMetrics(temp);
+      document.getElementById('prevTotalDist').innerText = `Rp ${formatRupiah(m.totalForDist)}`;
+      document.getElementById('prevTotalTransfer').innerText = `Rp ${formatRupiah(m.totalTransfer)}`;
+      document.getElementById('prevFeeInfo').innerText = `${(m.feePct * 100).toFixed(2)}% (Rp ${formatRupiah(m.feeRp)})`;
+      
+      const revEl = document.getElementById('prevRevSub');
+      if (m.revenue < 0) {
+        revEl.className = "text-xs font-bold text-rose-400 font-mono";
+        revEl.innerText = `-Rp ${formatRupiah(Math.abs(m.revenue))} (Subsidi)`;
+      } else {
+        revEl.className = "text-xs font-bold text-emerald-400 font-mono";
+        revEl.innerText = `+Rp ${formatRupiah(m.revenue)}`;
+      }
+    }
+
+    function saveSalesTransaction(e) {
+      e.preventDefault();
+      const editId = document.getElementById('editSalesId').value;
+      const payload = {
+        source: document.getElementById('formSalesSource').value.trim(),
+        trxDate: document.getElementById('formSalesDate').value,
+        trxNumber: document.getElementById('formSalesTrxNum').value.trim(),
+        distributor: document.getElementById('formSalesDist').value.trim().toUpperCase(),
+        prodName: document.getElementById('formSalesProdName').value.trim(),
+        mpPrice: parseFloat(document.getElementById('formSalesMpPrice').value) || 0,
+        distPrice: parseFloat(document.getElementById('formSalesDistPrice').value) || 0,
+        afterFee: parseFloat(document.getElementById('formSalesAfterFee').value) || 0,
+        unit: parseFloat(document.getElementById('formSalesUnit').value) || 1,
+        status: document.getElementById('formSalesStatus').value,
+        notes: document.getElementById('formSalesNotes').value.trim()
+      };
+
+      if (editId) {
+        const idx = salesRecords.findIndex(x => x.id === parseInt(editId));
+        if (idx !== -1) {
+          salesRecords[idx] = { id: parseInt(editId), ...payload };
+        }
+      } else {
+        const newId = salesRecords.length > 0 ? Math.max(...salesRecords.map(x => x.id)) + 1 : 1;
+        salesRecords.push({ id: newId, ...payload });
+      }
+
+      saveSalesRecords();
+      renderSalesTable();
+      closeSalesModal();
+    }
+
+    function deleteSalesRow(id) {
+      if (confirm("Yakin ingin menghapus baris transaksi ini?")) {
+        salesRecords = salesRecords.filter(x => x.id !== id);
+        saveSalesRecords();
+        renderSalesTable();
+      }
+    }
+
+    function resetSalesSampleData() {
+      if (confirm("Reset Sales Tracker kembali ke data contoh awal?")) {
+        salesRecords = JSON.parse(JSON.stringify(initialSalesData));
+        saveSalesRecords();
+        renderSalesTable();
+      }
+    }
+
+    // ==========================================
+    // DISTRIBUTOR & BANK MASTER MANAGER
+    // ==========================================
+    function toggleDistributorBankModal() {
+      const modal = document.getElementById('distributorBankModal');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        renderDistributorMasterList();
+      }
+    }
+
+    function renderDistributorMasterList() {
+      const container = document.getElementById('distributorMasterList');
+      if (!container) return;
+
+      if (distributorMasters.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-slate-500 italic text-xs">Belum ada master data rekening distributor.</div>`;
+        return;
+      }
+
+      container.innerHTML = distributorMasters.map(d => `
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center justify-between gap-3 text-xs">
+          <div>
+            <div class="font-bold text-white">${d.name}</div>
+            <div class="text-emerald-400 font-mono mt-0.5">${d.bank} — ${d.accountNumber} <span class="text-slate-400 font-sans">a/n ${d.accountHolder}</span></div>
+          </div>
+          <button onclick="deleteDistributorMaster(${d.id})" class="px-2.5 py-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-500/30 font-semibold transition">
+            🗑️ Hapus
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function saveDistributorMaster(e) {
+      e.preventDefault();
+      const name = document.getElementById('distMasterName').value.trim().toUpperCase();
+      const bank = document.getElementById('distMasterBank').value.trim();
+      const accNum = document.getElementById('distMasterAccNum').value.trim();
+      const accHolder = document.getElementById('distMasterAccHolder').value.trim();
+
+      const existingIdx = distributorMasters.findIndex(d => d.name.toUpperCase() === name);
+      if (existingIdx !== -1) {
+        distributorMasters[existingIdx] = { ...distributorMasters[existingIdx], name, bank, accountNumber: accNum, accountHolder: accHolder };
+      } else {
+        const newId = distributorMasters.length > 0 ? Math.max(...distributorMasters.map(d => d.id)) + 1 : 1;
+        distributorMasters.push({ id: newId, name, bank, accountNumber: accNum, accountHolder: accHolder });
+      }
+
+      saveDistributorMasters();
+      renderDistributorMasterList();
+
+      document.getElementById('distMasterName').value = "";
+      document.getElementById('distMasterBank').value = "";
+      document.getElementById('distMasterAccNum').value = "";
+      document.getElementById('distMasterAccHolder').value = "";
+      alert(`Data rekening distributor "${name}" berhasil disimpan!`);
+    }
+
+    function deleteDistributorMaster(id) {
+      if (confirm("Hapus data rekening distributor ini?")) {
+        distributorMasters = distributorMasters.filter(d => d.id !== id);
+        saveDistributorMasters();
+        renderDistributorMasterList();
+      }
+    }
+
+    // ==========================================
+    // IMPORT & EXPORT EXCEL SALES TRACKER
+    // ==========================================
+    function parseExcelDate(val) {
+      if (!val) return "";
+      if (typeof val === "number") {
+        // Excel serial date
+        const utcDays = Math.floor(val - 25569);
+        const utcValue = utcDays * 86400;
+        const dateInfo = new Date(utcValue * 1000);
+        return dateInfo.toISOString().split('T')[0];
+      }
+      const str = String(val).trim();
+      // Check DD/MM/YYYY or MM/DD/YYYY
+      if (str.includes('/')) {
+        const parts = str.split('/');
+        if (parts.length === 3) {
+          let p0 = parseInt(parts[0]), p1 = parseInt(parts[1]), p2 = parts[2];
+          if (p2.length === 2) p2 = "20" + p2;
+          // If first part > 12, it's DD/MM/YYYY
+          if (p0 > 12) {
+            return `${p2}-${String(p1).padStart(2, '0')}-${String(p0).padStart(2, '0')}`;
+          } else {
+            return `${p2}-${String(p0).padStart(2, '0')}-${String(p1).padStart(2, '0')}`;
+          }
+        }
+      }
+      if (str.includes('-') && str.length >= 10) {
+        return str.substring(0, 10);
+      }
+      return str;
+    }
+
+    function handleSalesFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames.find(n => n.toLowerCase().includes('sales')) || workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+          if (!json || json.length === 0) {
+            alert("File kosong atau format tidak terbaca.");
+            return;
+          }
+
+          let imported = [];
+          let lastSource = "Tokopedia";
+          let lastDate = "";
+          let lastTrx = "";
+          let nextId = 1;
+
+          json.forEach(row => {
+            const prodName = row["Prod Name"] || row["Nama Produk"] || row["Product Name"] || "";
+            if (!prodName) return;
+
+            const src = (row["Source"] || row["Channel"] || "").toString().trim();
+            if (src) lastSource = src;
+
+            // Handle merged date columns in Google Sheet export
+            const rawDate = row["Trx Date"] || row["__EMPTY"] || row["Date"] || "";
+            const parsedD = parseExcelDate(rawDate);
+            if (parsedD && parsedD.match(/^\d{4}-\d{2}-\d{2}$/)) lastDate = parsedD;
+
+            const trx = (row["Trx Number"] || row["No Transaksi"] || "").toString().trim();
+            if (trx) lastTrx = trx;
+
+            const dist = (row["Distributor"] || "PT HAGIA INTEGRASI SOLUSITAMA").toString().trim().toUpperCase();
+            const cleanNum = (v) => {
+              if (typeof v === "number") return v;
+              if (!v) return 0;
+              return parseFloat(String(v).replace(/[^0-9.-]+/g, "")) || 0;
+            };
+
+            const mpPrice = cleanNum(row["MP Price"]);
+            const distPrice = cleanNum(row["Price From Dist"] || row["Price From Distributor"]);
+            const afterFee = cleanNum(row["Price After Fee"]);
+            const unit = cleanNum(row["Unit"] || row["Qty"]) || 1;
+            const status = (row["Status"] || "Selesai").toString().trim();
+            const notes = (row["Notes"] || "").toString().trim();
+
+            imported.push({
+              id: nextId++,
+              source: lastSource,
+              trxDate: lastDate,
+              trxNumber: lastTrx,
+              distributor: dist,
+              prodName: prodName.toString().trim(),
+              mpPrice,
+              distPrice,
+              afterFee,
+              unit,
+              status: (status === "ACTIVE" || !status) ? "Selesai" : status,
+              notes
+            });
+          });
+
+          if (imported.length > 0) {
+            if (confirm(`Ditemukan ${imported.length} baris transaksi. Klik OK untuk mengganti data saat ini, atau Cancel untuk menggabungkan (append) ke data yang ada.`)) {
+              salesRecords = imported;
+            } else {
+              let maxId = salesRecords.length > 0 ? Math.max(...salesRecords.map(x => x.id)) : 0;
+              imported.forEach(item => { item.id = ++maxId; salesRecords.push(item); });
+            }
+            saveSalesRecords();
+            renderSalesTable();
+            alert(`Berhasil mengimpor ${imported.length} baris transaksi!`);
+          } else {
+            alert("Tidak ditemukan kolom 'Prod Name' yang valid pada file tersebut.");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Error membaca file Excel: " + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function exportSalesTrackerExcel() {
+      const wb = XLSX.utils.book_new();
+      const rows = [
+        ["No.", "Source", "Trx Date", "Trx Number", "Distributor", "Prod Name", "MP Price", "Price From Dist", "Price After Fee", "Unit", "Total For Dist", "Total", "Fee (%)", "Fee", "Revenue", "Status", "Actual P/L", "Subsidy", "Notes"]
+      ];
+
+      salesRecords.forEach((r, i) => {
+        const rowNum = i + 2;
+        rows.push([
+          i + 1,
+          r.source,
+          r.trxDate,
+          r.trxNumber,
+          r.distributor,
+          r.prodName,
+          r.mpPrice,
+          r.distPrice,
+          r.afterFee,
+          r.unit,
+          { f: `H${rowNum}*J${rowNum}` },
+          { f: `I${rowNum}*J${rowNum}` },
+          { f: `IFERROR((G${rowNum}-I${rowNum})/G${rowNum},0)` },
+          { f: `(G${rowNum}-I${rowNum})*J${rowNum}` },
+          { f: `L${rowNum}-K${rowNum}` },
+          r.status,
+          { f: `IF(P${rowNum}="Selesai",O${rowNum},0)` },
+          { f: `IF(O${rowNum}<0,ABS(O${rowNum}),0)` },
+          r.notes || ""
+        ]);
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = [
+        { wch: 5 }, { wch: 12 }, { wch: 12 }, { wch: 22 }, { wch: 30 }, { wch: 45 },
+        { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 6 }, { wch: 14 }, { wch: 14 },
+        { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 20 }
+      ];
+      XLSX.utils.book_append_sheet(wb, ws, "Sales Tracker");
+      XLSX.writeFile(wb, `Sales_Tracker_1000saudara_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+    // ==========================================
+    // GENERATOR 1: CREATE RECONCILE DATA TO DISTRIBUTOR
+    // ==========================================
+    function getMonthLabelIndo(isoDate) {
+      if (!isoDate || isoDate.length < 7) return "Periode Lainnya";
+      const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+      const parts = isoDate.split("-");
+      const y = parts[0];
+      const mIdx = parseInt(parts[1], 10) - 1;
+      return `${months[mIdx] || parts[1]} ${y}`;
+    }
+
+    function sanitizeSheetName(name) {
+      return name.replace(/[\/?*[\]:]/g, '').substring(0, 31);
+    }
+
+    function generateReconcileDistributor() {
+      const startDate = document.getElementById('reconStartDate').value;
+      const endDate = document.getElementById('reconEndDate').value;
+      const distFilter = document.getElementById('reconDistFilter').value;
+
+      if (!startDate || !endDate) {
+        alert("Harap isi rentang tanggal 'Dari Tanggal' dan 'Sampai Tanggal' terlebih dahulu sebelum membuat Reconcile!");
+        return;
+      }
+
+      const records = salesRecords.filter(r => {
+        if (r.status === "Batal") return false;
+        if (r.trxDate < startDate || r.trxDate > endDate) return false;
+        if (distFilter !== "ALL" && (r.distributor || "").trim() !== distFilter) return false;
+        return true;
+      });
+
+      if (records.length === 0) {
+        alert(`Tidak ditemukan transaksi aktif antara ${startDate} s/d ${endDate}.`);
+        return;
+      }
+
+      // Group records by Distributor
+      const groupedByDist = {};
+      records.forEach(r => {
+        const dName = (r.distributor || "UNKNOWN DISTRIBUTOR").trim();
+        if (!groupedByDist[dName]) groupedByDist[dName] = [];
+        groupedByDist[dName].push(r);
+      });
+
+      const distNames = Object.keys(groupedByDist);
+
+      // Generate 1 dedicated Excel workbook per distributor
+      distNames.forEach(distName => {
+        const distItems = groupedByDist[distName].sort((a, b) => a.trxDate.localeCompare(b.trxDate));
+        const wb = XLSX.utils.book_new();
+
+        // Group items by Month inside each Distributor's workbook (matching Data Reconcile PT Hagia format)
+        const byMonth = {};
+        distItems.forEach(item => {
+          const mLabel = getMonthLabelIndo(item.trxDate);
+          if (!byMonth[mLabel]) byMonth[mLabel] = [];
+          byMonth[mLabel].push(item);
+        });
+
+        Object.keys(byMonth).forEach(monthLabel => {
+          const mRows = byMonth[monthLabel];
+          const lastDataRow = mRows.length + 2;
+
+          const sheetAoA = [
+            [null, null, null, null, null, null, null, null, null, "Total", { f: `SUM(K3:K${lastDataRow})` }],
+            ["No.", "Source", "Trx Date", "Trx Number", "Distributor", "Prod Name", "Price From Distributor", "MP Price", "Price After Fee", "Unit", "Payment To Distributor"]
+          ];
+
+          mRows.forEach((item, idx) => {
+            const rNum = idx + 3;
+            sheetAoA.push([
+              idx + 1,
+              item.source,
+              item.trxDate,
+              item.trxNumber,
+              item.distributor,
+              item.prodName,
+              item.distPrice,
+              item.mpPrice,
+              item.afterFee,
+              item.unit,
+              { f: `I${rNum}*J${rNum}` }
+            ]);
+          });
+
+          const ws = XLSX.utils.aoa_to_sheet(sheetAoA);
+          ws['!cols'] = [
+            { wch: 5 }, { wch: 12 }, { wch: 13 }, { wch: 22 }, { wch: 30 },
+            { wch: 48 }, { wch: 20 }, { wch: 14 }, { wch: 16 }, { wch: 8 }, { wch: 22 }
+          ];
+          XLSX.utils.book_append_sheet(wb, ws, sanitizeSheetName(monthLabel));
+        });
+
+        const safeFileDist = distName.replace(/[^a-zA-Z0-9]/g, '_');
+        XLSX.writeFile(wb, `Data_Reconcile_${safeFileDist}_${startDate}_sd_${endDate}.xlsx`);
+      });
+
+      alert(`Berhasil membuat ${distNames.length} file Data Reconcile Distributor untuk periode ${startDate} s/d ${endDate}!`);
+    }
+
+    // ==========================================
+    // GENERATOR 2: CREATE RECONCILE DATA TO FINANCE
+    // ==========================================
+    function generateReconcileFinance() {
+      const startDate = document.getElementById('reconStartDate').value;
+      const endDate = document.getElementById('reconEndDate').value;
+      const distFilter = document.getElementById('reconDistFilter').value;
+
+      if (!startDate || !endDate) {
+        alert("Harap isi rentang tanggal 'Dari Tanggal' dan 'Sampai Tanggal' terlebih dahulu sebelum membuat Reconcile Finance!");
+        return;
+      }
+
+      const records = salesRecords.filter(r => {
+        if (r.status === "Batal") return false;
+        if (r.trxDate < startDate || r.trxDate > endDate) return false;
+        if (distFilter !== "ALL" && (r.distributor || "").trim() !== distFilter) return false;
+        return true;
+      });
+
+      if (records.length === 0) {
+        alert(`Tidak ditemukan transaksi aktif antara ${startDate} s/d ${endDate}.`);
+        return;
+      }
+
+      // Group records by Distributor
+      const groupedByDist = {};
+      records.forEach(r => {
+        const dName = (r.distributor || "UNKNOWN DISTRIBUTOR").trim();
+        if (!groupedByDist[dName]) groupedByDist[dName] = [];
+        groupedByDist[dName].push(r);
+      });
+
+      const distNames = Object.keys(groupedByDist);
+
+      distNames.forEach(distName => {
+        const distItems = groupedByDist[distName].sort((a, b) => a.trxDate.localeCompare(b.trxDate));
+        const bankInfo = distributorMasters.find(d => d.name.toUpperCase() === distName.toUpperCase()) || {
+          bank: "BCA / Bank Tujuan",
+          accountNumber: "(Belum diisi di Master Distributor)",
+          accountHolder: distName
+        };
+
+        const wb = XLSX.utils.book_new();
+        const totalRows = distItems.length;
+        const lastDetailRow = 4 + totalRows; // Row 5 is first data row
+
+        // Unique periods in order
+        const periods = [];
+        distItems.forEach(item => {
+          const p = getMonthLabelIndo(item.trxDate);
+          if (!periods.includes(p)) periods.push(p);
+        });
+
+        // SHEET 1: Ringkasan Finance (Exact structure matching Reconcile PT.Hagia FINANCE.xlsx)
+        const totalSummaryRow = 10;
+        const firstMonthRow = 11;
+        const lastMonthRow = 10 + periods.length;
+
+        const ringkasanAoA = [
+          [`REKONSILIASI ${distName}`],
+          [`Periode ${startDate} s/d ${endDate}`],
+          [],
+          [],
+          [`TOTAL TRANSFER ke ${distName}`, null, null, { f: `D${totalSummaryRow}` }, "Dibayarkan lebih dulu, sebesar total nilai after fee"],
+          [`TOTAL INVOICE ke ${distName}`, null, null, { f: `F${totalSummaryRow}` }, "Ditagihkan setelahnya, sebesar total selisih margin"],
+          [],
+          ["RINCIAN PER BULAN"],
+          ["Periode", "Nilai Jual MP (Bruto)", "Nilai Beli / HPP", `TRANSFER ke ${distName}`, "Fee Marketplace", `INVOICE ke ${distName}`, "Margin %"],
+          [
+            "TOTAL",
+            { f: `SUM(B${firstMonthRow}:B${lastMonthRow})` },
+            { f: `SUM(C${firstMonthRow}:C${lastMonthRow})` },
+            { f: `SUM(D${firstMonthRow}:D${lastMonthRow})` },
+            { f: `SUM(E${firstMonthRow}:E${lastMonthRow})` },
+            { f: `SUM(F${firstMonthRow}:F${lastMonthRow})` },
+            { f: `IFERROR(F${totalSummaryRow}/B${totalSummaryRow},0)` }
+          ]
+        ];
+
+        periods.forEach((pLabel, pIdx) => {
+          const rIdx = firstMonthRow + pIdx;
+          ringkasanAoA.push([
+            pLabel,
+            { f: `SUMIFS('Detail Transaksi'!$L$5:$L$${lastDetailRow},'Detail Transaksi'!$B$5:$B$${lastDetailRow},$A${rIdx})` },
+            { f: `SUMIFS('Detail Transaksi'!$N$5:$N$${lastDetailRow},'Detail Transaksi'!$B$5:$B$${lastDetailRow},$A${rIdx})` },
+            { f: `SUMIFS('Detail Transaksi'!$M$5:$M$${lastDetailRow},'Detail Transaksi'!$B$5:$B$${lastDetailRow},$A${rIdx})` },
+            { f: `SUMIFS('Detail Transaksi'!$O$5:$O$${lastDetailRow},'Detail Transaksi'!$B$5:$B$${lastDetailRow},$A${rIdx})` },
+            { f: `D${rIdx}-C${rIdx}` },
+            { f: `IFERROR(F${rIdx}/B${rIdx},0)` }
+          ]);
+        });
+
+        ringkasanAoA.push([]);
+        ringkasanAoA.push([`Rekening ${distName}`, `${bankInfo.bank} a/n ${bankInfo.accountHolder}`]);
+        ringkasanAoA.push([null, bankInfo.accountNumber]);
+        ringkasanAoA.push([]);
+        ringkasanAoA.push(["Rekening MSS", "BCA a/n PT Mitra Seribu Saudara"]);
+        ringkasanAoA.push([null, "5435327688"]);
+
+        const wsRingkasan = XLSX.utils.aoa_to_sheet(ringkasanAoA);
+        wsRingkasan['!cols'] = [
+          { wch: 28 }, { wch: 24 }, { wch: 20 }, { wch: 24 }, { wch: 20 }, { wch: 24 }, { wch: 14 }
+        ];
+        XLSX.utils.book_append_sheet(wb, wsRingkasan, "Ringkasan Finance");
+
+        // SHEET 2: Detail Transaksi
+        const detailAoA = [
+          [`DETAIL TRANSAKSI — ${distName} (${startDate} s/d ${endDate})`],
+          ["Sumber: Sales Tracker 1000saudara. Kolom L–P hasil perhitungan otomatis."],
+          [],
+          ["No.", "Periode", "Channel", "Trx Date", "Trx Number", "Distributor", "Nama Produk", "Price From Distributor", "MP Price", "Price After Fee", "Qty", "Nilai Jual MP (Bruto)", `TRANSFER ke ${distName} (After Fee x Qty)`, "Nilai Beli / HPP (Cost x Qty)", "Fee Marketplace", `INVOICE ke ${distName} (Selisih)`, "Flag"]
+        ];
+
+        distItems.forEach((item, idx) => {
+          const rNum = 5 + idx;
+          detailAoA.push([
+            idx + 1,
+            getMonthLabelIndo(item.trxDate),
+            item.source,
+            item.trxDate,
+            item.trxNumber,
+            item.distributor,
+            item.prodName,
+            item.distPrice,
+            item.mpPrice,
+            item.afterFee,
+            item.unit,
+            { f: `I${rNum}*K${rNum}` },
+            { f: `J${rNum}*K${rNum}` },
+            { f: `H${rNum}*K${rNum}` },
+            { f: `L${rNum}-M${rNum}` },
+            { f: `M${rNum}-N${rNum}` },
+            { f: `IF(P${rNum}<0,"MINUS MARGIN","")` }
+          ]);
+        });
+
+        const totalDetailRowNum = lastDetailRow + 1;
+        detailAoA.push([
+          "TOTAL", null, null, null, null, null, null, null, null, null,
+          { f: `SUM(K5:K${lastDetailRow})` },
+          { f: `SUM(L5:L${lastDetailRow})` },
+          { f: `SUM(M5:M${lastDetailRow})` },
+          { f: `SUM(N5:N${lastDetailRow})` },
+          { f: `SUM(O5:O${lastDetailRow})` },
+          { f: `SUM(P5:P${lastDetailRow})` },
+          null
+        ]);
+        detailAoA.push([]);
+        detailAoA.push(["Catatan:"]);
+        detailAoA.push([`- TRANSFER ke ${distName} = Price After Fee x Qty. Seluruh hasil neto marketplace diserahkan penuh, tanpa potongan.`]);
+        detailAoA.push([`- INVOICE ke ${distName} = (Price After Fee - Price From Distributor) x Qty. Ditagihkan terpisah setelah transfer.`]);
+
+        const wsDetail = XLSX.utils.aoa_to_sheet(detailAoA);
+        wsDetail['!cols'] = [
+          { wch: 5 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 22 }, { wch: 28 }, { wch: 45 },
+          { wch: 18 }, { wch: 14 }, { wch: 16 }, { wch: 6 }, { wch: 18 }, { wch: 24 }, { wch: 20 }, { wch: 16 }, { wch: 22 }, { wch: 15 }
+        ];
+        XLSX.utils.book_append_sheet(wb, wsDetail, "Detail Transaksi");
+
+        // SHEET 3: Lampiran Invoice
+        const lampiranAoA = [
+          [`LAMPIRAN PERHITUNGAN INVOICE — ${distName}`],
+          ["Dasar tagihan: (Price After Fee - Price From Distributor) x Qty, per baris transaksi."],
+          [],
+          ["No.", "Periode", "Trx Date", "Trx Number", "Nama Produk", "Price From Distributor", "Price After Fee", "Selisih / Unit", "Qty", "Nilai Ditagihkan"]
+        ];
+
+        distItems.forEach((item, idx) => {
+          const rNum = 5 + idx;
+          lampiranAoA.push([
+            idx + 1,
+            getMonthLabelIndo(item.trxDate),
+            item.trxDate,
+            item.trxNumber,
+            item.prodName,
+            item.distPrice,
+            item.afterFee,
+            { f: `G${rNum}-F${rNum}` },
+            item.unit,
+            { f: `H${rNum}*I${rNum}` }
+          ]);
+        });
+
+        lampiranAoA.push([
+          "TOTAL NILAI INVOICE", null, null, null, null, null, null, null, null,
+          { f: `SUM(J5:J${lastDetailRow})` }
+        ]);
+        lampiranAoA.push([]);
+        lampiranAoA.push([`Baris dengan selisih negatif = kredit ke ${distName}, sudah diperhitungkan sebagai pengurang total di atas.`]);
+        lampiranAoA.push(["Nilai di atas belum termasuk PPN."]);
+
+        const wsLampiran = XLSX.utils.aoa_to_sheet(lampiranAoA);
+        wsLampiran['!cols'] = [
+          { wch: 5 }, { wch: 15 }, { wch: 12 }, { wch: 22 }, { wch: 45 },
+          { wch: 18 }, { wch: 16 }, { wch: 14 }, { wch: 8 }, { wch: 18 }
+        ];
+        XLSX.utils.book_append_sheet(wb, wsLampiran, "Lampiran Invoice");
+
+        const safeFileDist = distName.replace(/[^a-zA-Z0-9]/g, '_');
+        XLSX.writeFile(wb, `Reconcile_${safeFileDist}_${startDate}_sd_${endDate}_FINANCE.xlsx`);
+      });
+
+      alert(`Berhasil membuat ${distNames.length} file Reconcile Finance (lengkap dengan Ringkasan Finance, Detail Transaksi, Lampiran Invoice & Info Rekening) untuk periode ${startDate} s/d ${endDate}!`);
+    }
+
     // Initial setup
+    updateDistributorSelectOptions();
+    renderSalesTable();
     updateActiveUserDisplay();
     updateFeeSummaries();
     renderTable();
